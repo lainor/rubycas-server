@@ -18,6 +18,10 @@ module CASServer::Model
   class SPTicket < ActiveRecord::Base
     include Consumable
     include Ticket
+    
+    belongs_to :granted_by_tgt,
+      :class_name => 'CASServer::Model::TicketGrantingTicket',
+      :foreign_key => :granted_by_tgt_id
 
     if ActiveRecord::VERSION::STRING >= '3.2'
       self.table_name = 'casserver_st'
@@ -32,9 +36,6 @@ module CASServer::Model
   end
 
   class ServiceTicket < SPTicket
-    belongs_to :granted_by_tgt,
-      :class_name => 'CASServer::Model::TicketGrantingTicket',
-      :foreign_key => :granted_by_tgt_id
     has_one :proxy_granting_ticket,
       :foreign_key => :created_by_st_id
   end
