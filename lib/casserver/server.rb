@@ -529,16 +529,15 @@ module CASServer
             send_logout_notification_for_service_ticket(st) if config[:enable_single_sign_out]
             # TODO: Maybe we should do some special handling if send_logout_notification_for_service_ticket fails?
             #       (the above method returns false if the POST results in a non-200 HTTP response).
+            pgts = CASServer::Model::ProxyGrantingTicket.find_all_by_service_ticket_id(st.id)
+
+            pgts.each do |pgt|
+              $LOG.debug("Deleting Proxy-Granting Ticket '#{pgt}' for user '#{pgt.service_ticket.username}'")
+              pgt.destroy
+            end
+
             $LOG.debug "Deleting #{st.class.name.demodulize} #{st.ticket.inspect} for service #{st.service}."
             st.destroy
-          end
-
-          pgts = CASServer::Model::ProxyGrantingTicket.find(:all,
-            :conditions => [CASServer::Model::ServiceTicket.quoted_table_name+".username = ?", tgt.username],
-            :include => :service_ticket)
-          pgts.each do |pgt|
-            $LOG.debug("Deleting Proxy-Granting Ticket '#{pgt}' for user '#{pgt.service_ticket.username}'")
-            pgt.destroy
           end
 
           $LOG.debug("Deleting #{tgt.class.name.demodulize} '#{tgt}' for user '#{tgt.username}'")
